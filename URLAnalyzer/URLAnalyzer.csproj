@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Views\Shared\Error.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />
     <PackageReference Include="PuppeteerSharp" Version="20.1.3" />
   </ItemGroup>
