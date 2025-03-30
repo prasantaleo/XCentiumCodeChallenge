@@ -15,10 +15,12 @@ namespace URLAnalyzer.Services
         const int mostOccurringWordsCount = 10;
         const int cacheAgeInMinutes = 10;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<UrlAnalyzerService> _logger;
 
-        public UrlAnalyzerService(IMemoryCache cache)
+        public UrlAnalyzerService(IMemoryCache cache, ILogger<UrlAnalyzerService> logger)
         {
             _cache = cache;
+            _logger = logger;
         }
 
         /// <summary>
@@ -28,15 +30,19 @@ namespace URLAnalyzer.Services
         /// <returns></returns>
         public async Task<UrlAnalysisResultModel> AnalyzeUrlAsync(string url)
         {
+            _logger.LogInformation("Starting analysis for URL: {Url}", url);
+
             // Check if the URL is valid
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
+                _logger.LogWarning("The provided URL is not valid: {Url}", url);
                 throw new ArgumentException("The provided URL is not valid.", nameof(url));
             }
 
             // Check if data is cached
             if (_cache.TryGetValue(url, out UrlAnalysisResultModel cachedResult))
             {
+                _logger.LogInformation("Cache hit for URL: {Url}", url);
                 return cachedResult;
             }
 
@@ -53,9 +59,9 @@ namespace URLAnalyzer.Services
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheAgeInMinutes)
             });
 
+            _logger.LogInformation("Analysis completed for URL: {Url}", url);
             return result;
         }
-
 
         /// <summary>
         /// Get HTML contents from the url
@@ -64,13 +70,15 @@ namespace URLAnalyzer.Services
         /// <returns></returns>
         public virtual async Task<string> GetHtmlContentsFromUrlAsync(string url)
         {
+            _logger.LogInformation("Fetching HTML contents for URL: {Url}", url);
+
             // Create an instance of HttpClient
             HttpClient httpClient = new HttpClient();
 
             string customUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36";
             httpClient.DefaultRequestHeaders.Add("User-Agent", customUserAgent);
 
-            var htmlContents = await httpClient.GetStringAsync(url).ConfigureAwait(false); 
+            var htmlContents = await httpClient.GetStringAsync(url).ConfigureAwait(false);
             return htmlContents;
         }
 
@@ -81,14 +89,6 @@ namespace URLAnalyzer.Services
         /// <returns></returns>
         private static List<string> ExtractImageUrls(string pageUrl, string htmlContent)
         {
-            //var urls = new List<string>();
-            //var regex = new Regex("<img[^>]+?src=[\"'](?<url>.*?)[\"'][^>]*>", RegexOptions.IgnoreCase);
-            //var matches = regex.Matches(htmlContent).Distinct();
-            //foreach (Match match in matches)
-            //{
-            //    urls.Add(match.Groups["ürl"].Value);
-            //}
-
             List<string> imageUrls = new List<string>();
             Regex regex = new Regex("<img[^>]+src=[\"']?([^\"'>]+)[\"']?", RegexOptions.IgnoreCase);
             MatchCollection matches = regex.Matches(htmlContent);
@@ -117,10 +117,9 @@ namespace URLAnalyzer.Services
         private static void GetImageUrlsWithBaseUri(string pageUrl, string htmlContents, UrlAnalysisResultModel result)
         {
             List<string> imageUrlList = ExtractImageUrls(pageUrl, htmlContents);
-             
+
             result.ImageUrls = imageUrlList;
         }
-
 
         /// <summary>
         /// Extracts words from HTML content
@@ -132,8 +131,6 @@ namespace URLAnalyzer.Services
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlContent);
             var htmlDocumentText = doc.DocumentNode.InnerText;
-            //var words = Regex.Split(htmlDocumentText, @"\W+", RegexOptions.IgnorePatternWhitespace);
-            //var words = htmlContent.Split(new[] { ' ', '\n', '\t', '\r', '.', ';', ':', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
             char[] wordsDelimiter = new char[] { ' ', '\r', '\n', '\t', '.', ',', ';', ':', '!', '?', '-', '_', '(', ')', '[', ']', '{', '}', '"', '\'' };
             var words = htmlDocumentText.Split(wordsDelimiter, StringSplitOptions.RemoveEmptyEntries);
@@ -162,6 +159,5 @@ namespace URLAnalyzer.Services
                 result.TopWords[group.Word] = group.Occurrence;
             }
         }
-
     }
 }

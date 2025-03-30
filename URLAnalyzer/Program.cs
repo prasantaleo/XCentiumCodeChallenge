@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Shared/Error");
+    app.UseExceptionHandler("~/Views/Shared/Error");
     app.UseHsts();
 }
 
