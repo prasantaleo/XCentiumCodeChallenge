@@ -1,11 +1,24 @@
 ﻿
 <h1 class="mt-4">URL Analyzer</h1>
+<div class="row">
+    <div class="col-md-6">
 <form id="urlForm">
     <div class="form-group">
         <label for="url">Enter URL:</label>
-        <input type="text" class="form-control" id="url" required>
+              
+                <input type="text" class="form-control" id="url" placeholder="https://example.com" required pattern="https?://.+">
+                <small class="form-text text-muted">Enter a valid URL (e.g., https://example.com)</small>
     </div>
     <button type="submit" class="btn btn-primary">Analyze</button>
 </form>
+</div>
 
-<div id="results" class="mt-4">Results </div>
+    <div class="col-md-6">
+        <div id="results" class="mt-4 alert alert-info">Results </div>
+</div>
+</div>
+
+
+
+
+
