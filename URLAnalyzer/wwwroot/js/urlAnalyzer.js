@@ -19,7 +19,6 @@
         }).fail(function () {
             $('#results').html('<p class="text-danger">Failed to analyze the URL. Please try again.</p>');
         });
-
        
     });
 
