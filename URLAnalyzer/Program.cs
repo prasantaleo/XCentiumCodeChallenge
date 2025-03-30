@@ -1,7 +1,11 @@
+using URLAnalyzer.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
+
+builder.Services.AddTransient<IUrlAnalyzerService, UrlAnalyzerService>();
 var app = builder.Build();
 
 
